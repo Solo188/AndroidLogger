@@ -9,13 +9,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 class LoggerService : Service() {
-    
-    private val serviceScope = CoroutineScope(Dispatchers.IO)
     
     override fun onBind(intent: Intent?): IBinder? = null
     
@@ -26,7 +21,7 @@ class LoggerService : Service() {
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startLogging()
+        // Простая реализация для теста
         return START_STICKY
     }
     
@@ -49,44 +44,7 @@ class LoggerService : Service() {
             .build()
     }
     
-    private fun startLogging() {
-        serviceScope.launch {
-            while (isActive) {
-                try {
-                    val logData = collectLogData()
-                    FileLogger.writeLog(this@LoggerService, logData)
-                    
-                    if (NetworkUtils.isInternetAvailable(this@LoggerService)) {
-                        TelegramSender.sendLog(logData)
-                    }
-                    
-                    delay(60000) // 1 minute
-                } catch (e: Exception) {
-                    delay(30000) // Wait 30 seconds on error
-                }
-            }
-        }
-    }
-    
-    private fun collectLogData(): String {
-        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-        
-        return """
-            📱 DEVICE LOGGER REPORT
-            ⏰ TIMESTAMP: $timestamp
-            
-            ${DeviceInfoUtils.getDeviceInfo(this)}
-            ${BatteryUtils.getBatteryInfo(this)}
-            ${MemoryUtils.getMemoryInfo(this)}
-            ${NetworkUtils.getNetworkInfo(this)}
-            ${LocationUtils.getLocationInfo(this)}
-            
-            === END OF REPORT ===
-        """.trimIndent()
-    }
-    
     override fun onDestroy() {
-        serviceScope.cancel()
         super.onDestroy()
     }
 }
