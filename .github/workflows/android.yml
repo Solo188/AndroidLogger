@@ -20,18 +20,17 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    - name: Build with detailed logs
+    - name: Build APK
       run: |
         # Устанавливаем Gradle
         wget -q https://services.gradle.org/distributions/gradle-7.5-bin.zip
         unzip -q gradle-7.5-bin.zip
         export PATH=$PWD/gradle-7.5/bin:$PATH
         
-        # Собираем с детальными логами
-        gradle clean assembleDebug --no-daemon --stacktrace --info --scan
+        # Отключаем Gradle scan чтобы избежать Terms of Service
+        gradle assembleDebug --no-daemon --stacktrace --no-scan
     
     - name: Upload APK
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
